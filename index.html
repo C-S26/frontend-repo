@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>todo-app</title>
+  <style>
+    body {
+      background-image: url('../background.jpg');
+      background-size:contain;      /* or 'contain', 'auto' */
+      background-repeat: no-repeat;
+      background-position: center center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 600px;
+      margin: 150px auto;
+      padding: 20px;
+      background-color: #05518b;
+      color: #333;
+    }
+    h2, h3 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    input {
+      display: block;
+      width: 100%;
+      padding: 10px 14px;
+      margin: 10px 0 20px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    #tasks div {
+      background: white;
+      margin-bottom: 10px;
+      padding: 14px 18px;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    #tasks strong {
+      font-size: 1.1rem;
+      color: #34495e;
+    }
+    #tasks small {
+      color: #666;
+      font-style: italic;
+    }
+    #user-info {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <h2>Todo App</h2>
+
+ <div id="auth-section">
+  <input id="email" placeholder="Email" />
+  <input id="password" type="password" placeholder="Password" />
+  <button onclick="login()">Login</button>
+  <p style="text-align:center; margin-top:10px;">
+    Don't have an account? <a href="register.html">Register here</a>
+  </p>
+</div>
+
+<div id="user-info" style="display:none;">
+  Logged in as <span id="username"></span>
+  <button onclick="logout()" style="margin-top:10px; width:auto; padding:6px 12px;">Logout</button>
+</div>
+
+<!-- <input id="searchInput" placeholder="Search tasks..." oninput="searchTasks()" /> -->
+
+<h3>My Tasks</h3>
+<div id="tasks"><em>Please log in to see tasks.</em></div>
+
+<button onclick="goToAddTask()">Add New Task</button>
+<button onclick="window.location.href='activity.html'">View Activity Logs</button>
+
+<script>
+  let userId = null;
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&<>"']/g, (m) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[m]);
+  }
+
+  function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!email || !password) {
+      alert('Please enter email and password.');
+      return;
+    }
+
+    fetch('http://localhost:5000/api/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
+      .then(res => {
+        if (!res.ok) return res.json().then(data => { throw new Error(data.message || 'Login failed'); });
+        return res.json();
+      })
+      .then(data => {
+        userId = data.userId;  // this is string, store as is
+        localStorage.setItem('userId', userId);
+        localStorage.setItem('username', data.username);
+        updateUIForLoggedInUser();
+        loadTasks();
+        alert(`Logged in as ${data.username}`);
+      })
+      .catch(err => alert(err.message));
+  }
+
+//   function searchTasks() {
+//     const query = document.getElementById('searchInput').value.trim();
+//     if (!userId) return;
+
+//     if (!query) {
+//       loadTasks();  // load all tasks if search is empty
+//       return;
+//     }
+
+//     fetch(`http://localhost:5000/api/tasks/search/${userId}?q=${encodeURIComponent(query)}`)
+//       .then(res => res.json())
+//       .then(tasks => {
+//         if (!tasks.length) {
+//           document.getElementById('tasks').innerHTML = '<em>No tasks match your search.</em>';
+//           return;
+//         }
+//         const out = tasks.map(t => `
+//           <div>
+//             <strong>${escapeHtml(t.title)}</strong><br/>
+//             <small>${escapeHtml(t.description || '')}</small>
+//           </div>`).join('');
+//         document.getElementById('tasks').innerHTML = out;
+//       })
+//       .catch(() => {
+//         document.getElementById('tasks').innerHTML = '<em>Error searching tasks.</em>';
+//       });
+//   }
+
+  function logout() {
+    userId = null;
+    localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    updateUIForLoggedOutUser();
+    document.getElementById('tasks').innerHTML = '<em>Please log in to see tasks.</em>';
+  }
+
+  function updateUIForLoggedInUser() {
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('user-info').style.display = 'block';
+    document.getElementById('username').textContent = localStorage.getItem('username') || '';
+  }
+
+  function updateUIForLoggedOutUser() {
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('user-info').style.display = 'none';
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+  }
+
+  function loadTasks() {
+    if (!userId) {
+      document.getElementById('tasks').innerHTML = '<em>Please log in to see tasks.</em>';
+      return;
+    }
+    fetch(`http://localhost:5000/api/tasks/${userId}`)
+      .then(res => res.json())
+      .then(tasks => {
+        if (!tasks.length) {
+          document.getElementById('tasks').innerHTML = '<em>No tasks found.</em>';
+          return;
+        }
+        const out = tasks.map(t => `
+          <div>
+            <strong>${escapeHtml(t.title)}</strong><br/>
+            <small>${escapeHtml(t.description || '')}</small>
+          </div>`).join('');
+        document.getElementById('tasks').innerHTML = out;
+      })
+      .catch(() => {
+        document.getElementById('tasks').innerHTML = '<em>Error loading tasks.</em>';
+      });
+  }
+
+  function goToAddTask() {
+    if (!userId) {
+      alert('Please login first!');
+      return;
+    }
+    window.location.href = 'add-task.html';
+  }
+
+  window.onload = () => {
+    const storedId = localStorage.getItem('userId');
+    const storedName = localStorage.getItem('username');
+    if (storedId && storedName) {
+      userId = storedId;
+      updateUIForLoggedInUser();
+      loadTasks();
+    } else {
+      updateUIForLoggedOutUser();
+    }
+  };
+</script>
+</body>
+</html>

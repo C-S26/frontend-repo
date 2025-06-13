@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register - Todo App</title>
+  <style>
+    body {
+     background-image: url('../background.jpg');
+      background-size:contain;      /* or 'contain', 'auto' */
+      background-repeat: no-repeat;
+      background-position: center center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 600px;
+      margin: 150px auto;
+      padding: 20px;
+      background-color: #8b0505;
+      color: #333;
+    }
+    input {
+      display: block;
+      width: 100%;
+      padding: 10px 14px;
+      margin: 10px 0 20px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    #message {
+      margin-top: 20px;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Create Your Account</h2>
+  <input id="email" placeholder="Email" />
+  <input id="password" type="password" placeholder="Password" />
+  <button onclick="register()">Register</button>
+  <div id="message"></div>
+
+  <script>
+    function register() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const username = email.split('@')[0];
+
+      if (!email || !password) {
+        alert('Please enter email and password.');
+        return;
+      }
+
+      fetch('http://localhost:5000/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      })
+      .then(res => {
+        if (!res.ok) return res.json().then(data => { throw new Error(data.message || 'Registration failed'); });
+        return res.json();
+      })
+      .then(() => {
+        const msgDiv = document.getElementById('message');
+        msgDiv.textContent = 'Registered successfully! Redirecting to login...';
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2500);
+      })
+      .catch(err => alert(err.message));
+    }
+  </script>
+</body>
+</html>
