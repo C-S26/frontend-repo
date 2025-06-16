@@ -121,7 +121,7 @@
       return;
     }
 
-    fetch('http://localhost:5000/api/users/login', {
+    fetch('https://backend-repo-0i43.onrender.com', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -195,7 +195,7 @@
       document.getElementById('tasks').innerHTML = '<em>Please log in to see tasks.</em>';
       return;
     }
-    fetch(`http://localhost:5000/api/tasks/${userId}`)
+    fetch(`https://backend-repo-0i43.onrender.com/${userId}`)
       .then(res => res.json())
       .then(tasks => {
         if (!tasks.length) {
