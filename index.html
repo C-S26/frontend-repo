@@ -195,7 +195,7 @@
       document.getElementById('tasks').innerHTML = '<em>Please log in to see tasks.</em>';
       return;
     }
-    fetch(`https://backend-repo-0i43.onrender.com/${userId}`)
+    fetch(`https://backend-repo-0i43.onrender.com/api/tasks/${userId}`)
       .then(res => res.json())
       .then(tasks => {
         if (!tasks.length) {
