@@ -84,7 +84,7 @@
         return;
       }
 
-      fetch('https://backend-repo-0i43.onrender.com', {
+      fetch('https://backend-repo-0i43.onrender.com/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, title, description })
