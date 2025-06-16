@@ -70,7 +70,7 @@
         return;
       }
 
-      fetch('http://localhost:5000/api/users/register', {
+      fetch('https://backend-repo-0i43.onrender.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password })
